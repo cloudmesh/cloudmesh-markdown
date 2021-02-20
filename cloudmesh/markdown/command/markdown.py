@@ -4,7 +4,8 @@ from cloudmesh.common.util import readfile
 from cloudmesh.common.util import writefile
 from cloudmesh.common.util import path_expand
 from pathlib import Path
-
+import os
+from cloudmesh.common.Shell import Shell
 
 class MarkdownCommand(PluginCommand):
 
@@ -15,8 +16,9 @@ class MarkdownCommand(PluginCommand):
         ::
 
           Usage:
-                markdown numbers [-i] FILE
-                markdown meta [-i] FILE
+                markdown [-p] numbers FILE
+                markdown [-p] meta FILE
+                markdown get [--dir] SOURCE DESTINATION
 
           This command does some useful things.
 
@@ -24,7 +26,7 @@ class MarkdownCommand(PluginCommand):
               FILE   a file name
 
           Options:
-              -i     in place replacements. Overwrites the existing file
+              -p     in place replacements. Overwrites the existing file
         """
 
         def remove_number(line):
@@ -75,7 +77,32 @@ class MarkdownCommand(PluginCommand):
                 else:
                     result.append(line)
 
-                print ("\n".join(result))
+            output = "\n".join(result)
+            if arguments["-p"]:
+                writefile(arguments.FILE, output)
+            else:
+                print (output)
+
+
+        elif arguments["get"] and arguments["--dir"]:
+
+
+            source = arguments.SOURCE
+            destination = arguments.DESTINATION
+
+            Shell.mkdir(destination)
+
+            os.system(f"curl -sL {source} -o {destination}/_index.html")
+            os.system(f"wget --no-parent -r {destination}/images")
+
+        elif arguments["get"]:
+
+            source = arguments.SOURCE
+            destination = arguments.DESTINATION
+
+            os.system(f"curl -sL {source} -o {destination}")
+
+
 
         elif arguments.list:
             print(f"generate metadata for {arguments.FILE} ...")
